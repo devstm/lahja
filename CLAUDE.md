@@ -7,7 +7,7 @@ Owner: Saleh. Saleh reviews and tests every step by hand. Claude writes the code
 ## Hard constraints
 
 - Pure SQL and PL/pgSQL only, so the package installs on Supabase through pg_tle and database.dev. No C code, no custom compiled extensions.
-- Never run database commands. No `psql`, `pgcli`, `pg_dump`, `pg_restore` or `supabase` CLI. A hook in `.claude/hooks/` blocks them.
+- Development runs against test databases only, never production data.
 - Saleh applies every SQL file by hand in the Supabase Dashboard SQL editor.
 - Scripts that connect to a database only run read-only queries (`select`), never DDL or writes.
 - Make specific, targeted changes. No full-file rewrites unless Saleh asks.
@@ -16,7 +16,7 @@ Owner: Saleh. Saleh reviews and tests every step by hand. Claude writes the code
 ## Do not touch
 
 - `fixtures/catalog.csv` and `fixtures/queries.csv` are the benchmark fixtures. Change them only with Saleh's approval, and never to make a score look better.
-- `.claude/settings.json` and `.claude/hooks/` are the safety rules. Change them only when Saleh asks.
+- `.claude/settings.json` holds the permission rules. Change it only when Saleh asks.
 
 ## Working process (every slice)
 
