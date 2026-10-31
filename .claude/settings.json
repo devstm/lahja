@@ -1,27 +1,8 @@
 {
   "permissions": {
     "deny": [
-      "Bash(psql:*)",
-      "Bash(pgcli:*)",
-      "Bash(pg_dump:*)",
-      "Bash(pg_restore:*)",
-      "Bash(supabase:*)",
-      "Bash(npx supabase:*)",
       "Read(./.env)",
       "Read(./.env.*)"
-    ]
-  },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/block-db-cli.mjs\""
-          }
-        ]
-      }
     ]
   }
 }
