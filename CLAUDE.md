@@ -30,15 +30,16 @@ Owner: Saleh. Saleh reviews and tests every step by hand. Claude writes the code
 ## Layout
 
 - `fixtures/`: benchmark catalog (50 products) and test queries (50 queries, each with a slice and expected product ids)
-- `db/`: SQL files, numbered in the order Saleh applies them (from Slice 1)
-- `bench/`: benchmark runner in TypeScript (from Slice 1)
+- `db/`: SQL files, numbered in the order Saleh applies them. `004_bench_seed.sql` is generated: never edit it by hand
+- `scripts/fixtures-to-sql.mjs`: regenerates `db/004_bench_seed.sql` from `fixtures/` (run after any approved fixture change)
+- The benchmark is pure SQL (`db/003` to `db/005`) and runs in the Supabase SQL editor
 
 ## Slice status
 
 | Slice | Topic | Status |
 | --- | --- | --- |
-| 0 | Repo setup, rules, fixtures | In review |
-| 1 | `arabic_normalize()` and baseline benchmark | Not started |
+| 0 | Repo setup, rules, fixtures | Done |
+| 1 | `lahja.normalize()` and baseline benchmark | In review |
 | 2 | Arabizi and dialect dictionaries | Not started |
 | 3 | Ranking and hybrid vector search | Not started |
 | 4 | Packaging for database.dev | Not started |
