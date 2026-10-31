@@ -1,0 +1,51 @@
+id,query,slice,expected_ids
+q01,عسل سدر,standard,p001;p002
+q02,عسل سِدر,diacritics,p001;p002
+q03,ابريق شاي,variants,p012
+q04,إبريق شاى,variants,p012
+q05,3asal sidr,arabizi,p001;p002
+q06,sidr honey,english,p001;p002
+q07,بدي عسل منيح,dialect_levant,p001;p002;p003;p004
+q08,عايز سماعات,dialect_egypt,p024;p025;p026
+q09,سماعات bluetooth,mixed,p024;p025
+q10,عسل سدير,typo,p001;p002
+q11,موبايل سامسونج,regional_synonym,p021
+q12,جوال سامسونج,standard,p021
+q13,تلفون سامسونج,regional_synonym,p021
+q14,ayfon 15,arabizi,p022
+q15,iphone,english,p022
+q16,ايفون,standard,p022
+q17,سماعه بلوتوث,variants,p024;p025
+q18,شاحن سريع,standard,p027
+q19,charger,english,p027
+q20,بطارية متنقلة,standard,p028
+q21,باور بنك,typo,p028
+q22,كفر جوال,standard,p029
+q23,جراب موبايل,dialect_egypt,p029
+q24,لابتوب,standard,p030
+q25,laptop lenovo,english,p030
+q26,حاسوب محمول,standard,p030
+q27,ماوس,standard,p031
+q28,فارة لاسلكية,variants,p031
+q29,زيت زيتون,standard,p006
+q30,zeit zeitoon,arabizi,p006
+q31,olive oil,english,p006
+q32,زعتر,standard,p007
+q33,za3tar,arabizi,p007
+q34,تمر,standard,p008
+q35,قهوه عربيه,variants,p009
+q36,ahwe 3arabi,arabizi,p009
+q37,دله,variants,p014
+q38,غلايه,variants,p013
+q39,كتلي,dialect_gulf,p013
+q40,قلايه هوائيه,variants,p019
+q41,air fryer,english,p019
+q42,طنجرة,standard,p016
+q43,قدر ضغط,standard,p016
+q44,جزمه شتويه,dialect_levant,p038
+q45,كندرة رياضة,dialect_levant,p037
+q46,بوت نسائي,variants,p038
+q47,جاكيت,standard,p039
+q48,abaya,english,p036
+q49,شنطة اطفال,no_match,
+q50,حفاضات,standard,p044
