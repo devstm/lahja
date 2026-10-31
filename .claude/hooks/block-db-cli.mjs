@@ -2,7 +2,8 @@
 // Exit code 2 tells Claude Code to refuse the command and show the reason to Claude.
 
 const BLOCKED = new Set(['psql', 'pgcli', 'pg_dump', 'pg_restore', 'supabase']);
-const WRAPPERS = new Set(['sudo', 'npx', 'pnpm', 'yarn', 'bunx', 'env', 'exec', 'time', 'xargs']);
+// Commands that only read or print text. A blocked name in their arguments is just text.
+const TEXT_ONLY = new Set(['git', 'grep', 'rg', 'cat', 'echo', 'printf', 'ls', 'head', 'tail', 'wc', 'less', 'diff']);
 
 let raw = '';
 process.stdin.on('data', (chunk) => (raw += chunk));
@@ -16,10 +17,17 @@ process.stdin.on('end', () => {
 
   // Split into simple commands on ; & | newlines and subshell brackets.
   const segments = command.split(/[;&|\n()`]|\$\(/);
+  // Every word is checked, so wrappers (sudo -u postgres, pnpm dlx, npm exec)
+  // and quoted shells (bash -c "...") cannot hide a blocked CLI.
   for (const segment of segments) {
-    const words = segment.trim().split(/\s+/).filter(Boolean);
+    const words = segment
+      .trim()
+      .split(/\s+/)
+      .map((word) => word.replace(/^['"]+|['"]+$/g, ''))
+      .filter(Boolean);
+    const commandWord = words.find((word) => !/^[A-Za-z_][A-Za-z0-9_]*=/.test(word));
+    if (!commandWord || TEXT_ONLY.has(commandWord.split('/').pop())) continue;
     for (const word of words) {
-      if (/^[A-Za-z_][A-Za-z0-9_]*=/.test(word) || WRAPPERS.has(word) || word.startsWith('-')) continue;
       const name = word.split('/').pop();
       if (BLOCKED.has(name)) {
         console.error(
@@ -28,7 +36,6 @@ process.stdin.on('end', () => {
         );
         process.exit(2);
       }
-      break; // only the command word of each segment matters
     }
   }
   process.exit(0);
