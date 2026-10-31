@@ -1,6 +1,8 @@
 -- 001_normalize.sql
 -- lahja.normalize(text): folds the many ways Arabic is written into one search form.
 -- Apply in the Supabase SQL editor. Safe to run again.
+-- After changing this function, re-run 003 and 004: stored search columns do not
+-- recompute when the function changes.
 
 create schema if not exists lahja;
 
@@ -17,7 +19,7 @@ as $$
         translate(
           -- 1. remove diacritics (U+064B to U+0652), superscript alef (U+0670),
           --    tatweel (U+0640) and invisible direction and joiner marks
-          regexp_replace(input, '[ً-ْٰـ‌-‏]', '', 'g'),
+          regexp_replace(input, '[\u064B-\u0652\u0670\u0640\u200C-\u200F]', '', 'g'),
           -- 2. fold letter variants and digits
           --    أ إ آ ٱ -> ا   ى -> ي   ة -> ه   ؤ -> و   ئ -> ي   Persian ک ی -> ك ي
           --    Arabic-Indic and Persian digits -> 0 to 9
