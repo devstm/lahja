@@ -21,6 +21,8 @@ dialect_cases(name, query, product_text, should_match) as (
     ('arabizi coffee',       'ahwe',           'قهوة عربية بالهيل',          true),
     ('filler and synonym',   'بدي كندرة',      'حذاء رياضي رجالي للجري',     true),
     ('plain word unchanged', 'عسل',            'عسل سدر يمني',               true),
+    ('two-word entry',       'باور بانك',      'بطارية متنقلة 20000',        true),
+    ('phone is not laptop',  'جوال',           'لابتوب لينوفو حاسوب محمول',  false),
     ('synonym is not magic', 'كندرة',          'عسل سدر يمني',               false),
     ('all words required',   'كندرة جلد',      'حذاء رياضي رجالي للجري',     false)
 )

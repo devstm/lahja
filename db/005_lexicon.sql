@@ -35,7 +35,8 @@ from (values
   ('شنطة', 'bag', 'synonym'), ('حقيبة', 'bag', 'synonym'), ('جنطة', 'bag', 'synonym'),
   -- phones and computers
   ('جوال', 'phone', 'synonym'), ('موبايل', 'phone', 'synonym'), ('هاتف', 'phone', 'synonym'),
-  ('تلفون', 'phone', 'synonym'), ('تليفون', 'phone', 'synonym'), ('محمول', 'phone', 'synonym'),
+  -- محمول is left out: it also means laptop in حاسوب محمول
+  ('تلفون', 'phone', 'synonym'), ('تليفون', 'phone', 'synonym'),
   ('كفر', 'phone_case', 'synonym'), ('جراب', 'phone_case', 'synonym'),
   ('لابتوب', 'laptop', 'synonym'), ('حاسوب محمول', 'laptop', 'synonym'), ('كمبيوتر محمول', 'laptop', 'synonym'),
   ('كمبيوتر', 'computer', 'synonym'), ('حاسوب', 'computer', 'synonym'), ('حاسب', 'computer', 'synonym'),
@@ -90,6 +91,7 @@ as $$
 $$;
 
 -- Each remaining word matches itself OR any word in its synonym groups; words are ANDed.
+-- Two-word lexicon entries (باور بانك) are matched first, as one unit.
 -- Uses the 'arabic' config, so it pairs with columns built as
 -- to_tsvector('arabic', lahja.normalize(...)).
 create or replace function lahja.dialect_query(input text)
@@ -100,22 +102,28 @@ strict
 parallel safe
 as $$
 declare
-  w      text;
+  words  text[] := array_remove(string_to_array(lahja.strip_fillers(input), ' '), '');
+  i      int := 1;
+  unit   text;
   syn    text;
   part   tsquery;
   result tsquery := ''::tsquery;
 begin
-  for w in
-    select t.w from regexp_split_to_table(lahja.strip_fillers(input), ' ') with ordinality as t(w, n)
-    where t.w <> ''
-    order by t.n
-  loop
-    part := plainto_tsquery('arabic', w);
+  while i <= coalesce(array_length(words, 1), 0) loop
+    unit := words[i];
+    if i < array_length(words, 1)
+       and exists (select 1 from lahja.lexicon where word = words[i] || ' ' || words[i + 1]) then
+      unit := words[i] || ' ' || words[i + 1];
+      i := i + 1;
+    end if;
+    i := i + 1;
+
+    part := plainto_tsquery('arabic', unit);
     for syn in
       select distinct other.word
       from lahja.lexicon mine
       join lahja.lexicon other on other.grp = mine.grp and other.kind = 'synonym'
-      where mine.word = w and mine.kind = 'synonym' and other.word <> w
+      where mine.word = unit and mine.kind = 'synonym' and other.word <> unit
     loop
       part := part || plainto_tsquery('arabic', syn);
     end loop;
