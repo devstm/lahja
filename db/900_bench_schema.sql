@@ -4,7 +4,8 @@
 --   b1: 'simple' config on lahja.normalize(text)
 --   b2: built-in 'arabic' config (with stemming) on lahja.normalize(text)
 --   b3: consonant skeleton of the Arabic fields (title_en left out), for Arabizi and typos
--- Requires 001 and 003.
+--   b6: lahja.to_document(), the public search API from 007
+-- Requires 001, 003, 005 and 007.
 
 create schema if not exists bench;
 
@@ -39,6 +40,11 @@ create table bench.products (
     to_tsvector('simple'::regconfig, lahja.skeleton(
       title || ' ' || coalesce(category, '') || ' ' ||
       coalesce(brand, '') || ' ' || coalesce(description, '')))
+  ) stored,
+  b6 tsvector generated always as (
+    lahja.to_document(
+      title || ' ' || coalesce(title_en, '') || ' ' || coalesce(category, '') || ' ' ||
+      coalesce(brand, '') || ' ' || coalesce(description, ''))
   ) stored
 );
 
@@ -46,6 +52,7 @@ create index products_b0_idx on bench.products using gin (b0);
 create index products_b1_idx on bench.products using gin (b1);
 create index products_b2_idx on bench.products using gin (b2);
 create index products_b3_idx on bench.products using gin (b3);
+create index products_b6_idx on bench.products using gin (b6);
 
 create table bench.queries (
   id           text primary key,

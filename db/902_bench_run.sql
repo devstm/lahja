@@ -6,14 +6,18 @@
 --   b3: consonant skeleton only
 --   b4: b2 results first, then products only the skeleton found (Slice 2)
 --   b5: like b4, but the b2 query is lahja.dialect_query() and the skeleton
---       ignores filler words (the Slice 3 candidate)
+--       ignores filler words (Slice 3)
+--   b6: the public API: lahja.to_document(), lahja.to_query(), lahja.rank() (Slice 4)
 -- Metrics:
 --   hit_at_3:  share of queries with an expected product in the top 3
 --   mrr:       mean of 1 / rank of the first expected product (0 when missing)
 --   zero_rate: share of queries that returned no results
+--   noise_at_3: share of top-3 results that are not expected products. Some of this
+--               is unavoidable: a query with one expected product and 3 results
+--               scores at least 0.67 even when ranking is perfect.
 -- The no_match slice has no expected products: only zero_rate applies there
--- (1.00 is the ideal score), and it is left out of the hit_at_3 and mrr totals.
--- Requires 001 to 006, 900 and 901.
+-- (1.00 is the ideal score), and it is left out of the other totals.
+-- Requires 001 to 008, 900 and 901.
 
 with q as (
   select id, query, slice, expected_ids,
@@ -22,7 +26,8 @@ with q as (
          plainto_tsquery('arabic', lahja.normalize(query))         as tq2,
          plainto_tsquery('simple', lahja.skeleton(query))          as tq3,
          lahja.dialect_query(query)                                as tq5,
-         plainto_tsquery('simple', lahja.skeleton(lahja.strip_fillers(query))) as tq5s
+         plainto_tsquery('simple', lahja.skeleton(lahja.strip_fillers(query))) as tq5s,
+         lahja.to_query(query)                                     as tq6
   from bench.queries
 ),
 scored as (
@@ -44,6 +49,9 @@ scored as (
   union all
   select q.id, 'b5', p.id, ts_rank(p.b3, q.tq5s)
   from q join bench.products p on p.b3 @@ q.tq5s
+  union all
+  select q.id, 'b6', p.id, lahja.rank(p.b6, q.tq6)
+  from q join bench.products p on p.b6 @@ q.tq6
 ),
 -- b4: b2 matches score 10 + rank (always ahead; ts_rank stays far below 10), skeleton-only matches score their rank
 b4 as (
@@ -69,16 +77,19 @@ per_query as (
            where m.query_id = q.id and m.config = c.config
              and m.product_id = any (q.expected_ids)) as first_hit,
          (select count(*) from matches m
-           where m.query_id = q.id and m.config = c.config) as results
+           where m.query_id = q.id and m.config = c.config) as results,
+         (select avg((not m.product_id = any (q.expected_ids))::int) from matches m
+           where m.query_id = q.id and m.config = c.config and m.rank <= 3) as noise
   from q
-  cross join (values ('b0'), ('b1'), ('b2'), ('b3'), ('b4'), ('b5')) as c(config)
+  cross join (values ('b0'), ('b1'), ('b2'), ('b3'), ('b4'), ('b5'), ('b6')) as c(config)
 )
 select coalesce(slice, 'ALL') as slice,
        config,
        count(*) as queries,
        round(avg(case when has_expected then (coalesce(first_hit, 99) <= 3)::int end), 2) as hit_at_3,
        round(avg(case when has_expected then coalesce(1.0 / first_hit, 0) end), 2) as mrr,
-       round(avg((results = 0)::int), 2) as zero_rate
+       round(avg((results = 0)::int), 2) as zero_rate,
+       round(avg(case when has_expected then noise end), 2) as noise_at_3
 from per_query
 group by grouping sets ((slice, config), (config))
 order by slice is null, slice, config;
