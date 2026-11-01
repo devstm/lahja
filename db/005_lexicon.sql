@@ -5,7 +5,7 @@
 --   lahja.strip_fillers(text): removes filler words from a query.
 --   lahja.dialect_query(text): builds a tsquery where each word also matches its synonyms.
 -- Words are stored normalised. Users can add their own rows.
--- Requires 001_normalize.sql. Safe to run again: the starter rows are re-inserted
+-- Requires 001_normalize.sql. Safe to run again: starter rows are re-inserted or re-marked
 -- without duplicates and user rows are kept.
 
 create table if not exists lahja.lexicon (
@@ -17,11 +17,15 @@ create table if not exists lahja.lexicon (
 
 create index if not exists lexicon_word_idx on lahja.lexicon (word);
 
+-- Starter rows come from this file; user rows do not. As an extension, only user rows
+-- are included in backups, so a restore does not insert starter rows twice.
+alter table lahja.lexicon add column if not exists is_starter boolean not null default false;
+
 -- Starter data: general Arabic dialect vocabulary across product types, not tuned to any test set.
 -- Ambiguous words are left out on purpose: براد (fridge in the Levant, teapot in Morocco),
 -- لبن (milk in Egypt, yogurt in the Levant).
-insert into lahja.lexicon (word, grp, kind)
-select lahja.normalize(word), grp, kind
+insert into lahja.lexicon (word, grp, kind, is_starter)
+select lahja.normalize(word), grp, kind, true
 from (values
   -- footwear
   ('حذاء', 'shoes', 'synonym'), ('كندرة', 'shoes', 'synonym'), ('جزمة', 'shoes', 'synonym'),
@@ -73,7 +77,8 @@ from (values
   ('كويسة', 'quality', 'filler'), ('زين', 'quality', 'filler'), ('حلو', 'quality', 'filler'),
   ('حلوة', 'quality', 'filler'), ('ممتاز', 'quality', 'filler'), ('رخيص', 'quality', 'filler')
 ) as starter(word, grp, kind)
-on conflict (word, grp) do nothing;
+-- rows from older versions of this file are marked as starter rows too
+on conflict (word, grp) do update set is_starter = true;
 
 -- Removes filler words. Stable, not immutable: it reads lahja.lexicon.
 create or replace function lahja.strip_fillers(input text)
