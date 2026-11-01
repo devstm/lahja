@@ -1,7 +1,7 @@
 -- 001_normalize.sql
 -- lahja.normalize(text): folds the many ways Arabic is written into one search form.
 -- Apply in the Supabase SQL editor. Safe to run again.
--- After changing this function, re-run 003 and 004: stored search columns do not
+-- After changing this function, re-run 005 and 006: stored search columns do not
 -- recompute when the function changes.
 
 create schema if not exists lahja;
