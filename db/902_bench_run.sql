@@ -1,24 +1,28 @@
--- 007_bench_run.sql
+-- 902_bench_run.sql
 -- Runs every benchmark query against each config. Read-only.
 --   b0: plain Postgres 'arabic' config on raw text
 --   b1: normalise only
 --   b2: normalise + stem
 --   b3: consonant skeleton only
---   b4: b2 results first, then products only the skeleton found (the Slice 2 candidate)
+--   b4: b2 results first, then products only the skeleton found (Slice 2)
+--   b5: like b4, but the b2 query is lahja.dialect_query() and the skeleton
+--       ignores filler words (the Slice 3 candidate)
 -- Metrics:
 --   hit_at_3:  share of queries with an expected product in the top 3
 --   mrr:       mean of 1 / rank of the first expected product (0 when missing)
 --   zero_rate: share of queries that returned no results
 -- The no_match slice has no expected products: only zero_rate applies there
 -- (1.00 is the ideal score), and it is left out of the hit_at_3 and mrr totals.
--- Requires 001 to 006.
+-- Requires 001 to 006, 900 and 901.
 
 with q as (
   select id, query, slice, expected_ids,
          plainto_tsquery('arabic', query)                          as tq0,
          plainto_tsquery('simple', lahja.normalize(query))         as tq1,
          plainto_tsquery('arabic', lahja.normalize(query))         as tq2,
-         plainto_tsquery('simple', lahja.skeleton(query))          as tq3
+         plainto_tsquery('simple', lahja.skeleton(query))          as tq3,
+         lahja.dialect_query(query)                                as tq5,
+         plainto_tsquery('simple', lahja.skeleton(lahja.strip_fillers(query))) as tq5s
   from bench.queries
 ),
 scored as (
@@ -33,6 +37,13 @@ scored as (
   union all
   select q.id, 'b3', p.id, ts_rank(p.b3, q.tq3)
   from q join bench.products p on p.b3 @@ q.tq3
+  union all
+  -- b5 parts: dialect query on b2 (score + 10, always ahead), then skeleton-only matches
+  select q.id, 'b5', p.id, 10 + ts_rank(p.b2, q.tq5)
+  from q join bench.products p on p.b2 @@ q.tq5
+  union all
+  select q.id, 'b5', p.id, ts_rank(p.b3, q.tq5s)
+  from q join bench.products p on p.b3 @@ q.tq5s
 ),
 -- b4: b2 matches score 10 + rank (always ahead; ts_rank stays far below 10), skeleton-only matches score their rank
 b4 as (
@@ -44,7 +55,12 @@ b4 as (
 matches as (
   select query_id, config, product_id,
          row_number() over (partition by query_id, config order by score desc, product_id) as rank
-  from (select * from scored union all select * from b4) all_scores
+  from (
+    -- a product found by both parts of b5 keeps its best score once
+    select query_id, config, product_id, max(score) as score
+    from (select * from scored union all select * from b4) all_scores
+    group by query_id, config, product_id
+  ) best
 ),
 per_query as (
   select q.id, q.slice, c.config,
@@ -55,7 +71,7 @@ per_query as (
          (select count(*) from matches m
            where m.query_id = q.id and m.config = c.config) as results
   from q
-  cross join (values ('b0'), ('b1'), ('b2'), ('b3'), ('b4')) as c(config)
+  cross join (values ('b0'), ('b1'), ('b2'), ('b3'), ('b4'), ('b5')) as c(config)
 )
 select coalesce(slice, 'ALL') as slice,
        config,

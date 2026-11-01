@@ -30,9 +30,9 @@ Owner: Saleh. Saleh reviews and tests every step by hand. Claude writes the code
 ## Layout
 
 - `fixtures/`: benchmark catalog (50 products) and test queries (50 queries, each with a slice and expected product ids)
-- `db/`: SQL files, numbered in the order Saleh applies them. Package functions first, then the benchmark. `006_bench_seed.sql` is generated: never edit it by hand
-- `scripts/fixtures-to-sql.mjs`: regenerates `db/006_bench_seed.sql` from `fixtures/` (run after any approved fixture change)
-- The benchmark is pure SQL (`db/005` to `db/007`) and runs in the Supabase SQL editor
+- `db/`: SQL files, numbered in the order Saleh applies them. Package files use 001 to 899; benchmark files use 900 and up, so they never need renumbering. `901_bench_seed.sql` is generated: never edit it by hand
+- `scripts/fixtures-to-sql.mjs`: regenerates `db/901_bench_seed.sql` from `fixtures/` (run after any approved fixture change)
+- The benchmark is pure SQL (`db/900` to `db/902`) and runs in the Supabase SQL editor
 - Benchmark tuning must not target specific test queries. Saleh keeps a private held-out query set to check for overfitting
 
 ## Slice status
@@ -41,8 +41,8 @@ Owner: Saleh. Saleh reviews and tests every step by hand. Claude writes the code
 | --- | --- | --- |
 | 0 | Repo setup, rules, fixtures | Done |
 | 1 | `lahja.normalize()` and baseline benchmark | Done |
-| 2 | Stemming and Arabizi consonant skeletons | In review |
-| 3 | Dialect and synonym dictionary | Not started |
+| 2 | Stemming and Arabizi consonant skeletons | Done |
+| 3 | Dialect and synonym lexicon | In review |
 | 4 | Ranking and hybrid vector search | Not started |
 | 5 | Packaging for database.dev | Not started |
 

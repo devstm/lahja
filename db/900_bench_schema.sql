@@ -1,4 +1,4 @@
--- 005_bench_schema.sql
+-- 900_bench_schema.sql
 -- Benchmark tables. Running this again drops and recreates them (test data only).
 --   b0: built-in 'arabic' config on raw text (plain Postgres)
 --   b1: 'simple' config on lahja.normalize(text)
