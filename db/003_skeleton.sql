@@ -6,7 +6,7 @@
 -- Letters that Arabizi writers do not tell apart are merged:
 --   ص->س  ض->د  ط->ت  ظ ذ->ز  ث->ت  ق->ك  ح->ه
 -- Requires 001_normalize.sql. Safe to run again.
--- After changing these functions, re-run 005 and 006.
+-- After changing these functions, re-run 900 and 901.
 
 create or replace function lahja.skeleton_word(word text)
 returns text
