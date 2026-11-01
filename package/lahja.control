@@ -1,0 +1,3 @@
+default_version = '0.1.0'
+comment = 'Smart Arabic search for Postgres: spelling variants, Arabizi, dialects, typos and hybrid ranking'
+relocatable = false

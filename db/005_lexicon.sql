@@ -17,11 +17,15 @@ create table if not exists lahja.lexicon (
 
 create index if not exists lexicon_word_idx on lahja.lexicon (word);
 
+-- Starter rows come from this file; user rows do not. As an extension, only user rows
+-- are included in backups, so a restore does not insert starter rows twice.
+alter table lahja.lexicon add column if not exists is_starter boolean not null default false;
+
 -- Starter data: general Arabic dialect vocabulary across product types, not tuned to any test set.
 -- Ambiguous words are left out on purpose: براد (fridge in the Levant, teapot in Morocco),
 -- لبن (milk in Egypt, yogurt in the Levant).
-insert into lahja.lexicon (word, grp, kind)
-select lahja.normalize(word), grp, kind
+insert into lahja.lexicon (word, grp, kind, is_starter)
+select lahja.normalize(word), grp, kind, true
 from (values
   -- footwear
   ('حذاء', 'shoes', 'synonym'), ('كندرة', 'shoes', 'synonym'), ('جزمة', 'shoes', 'synonym'),
