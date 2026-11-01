@@ -42,9 +42,10 @@ Owner: Saleh. Saleh reviews and tests every step by hand. Claude writes the code
 | 0 | Repo setup, rules, fixtures | Done |
 | 1 | `lahja.normalize()` and baseline benchmark | Done |
 | 2 | Stemming and Arabizi consonant skeletons | Done |
-| 3 | Dialect and synonym lexicon | In review |
-| 4 | Ranking and hybrid vector search | Not started |
-| 5 | Packaging for database.dev | Not started |
+| 3 | Dialect and synonym lexicon | Done |
+| 4 | Search API: `to_document()`, `to_query()`, `rank()` | In review |
+| 5 | Vector search (matching by meaning) | Not started |
+| 6 | Packaging for database.dev | Not started |
 
 ## Style
 
