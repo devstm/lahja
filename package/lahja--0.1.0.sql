@@ -127,7 +127,7 @@ comment on function lahja.skeleton(text) is
 --   lahja.strip_fillers(text): removes filler words from a query.
 --   lahja.dialect_query(text): builds a tsquery where each word also matches its synonyms.
 -- Words are stored normalised. Users can add their own rows.
--- Requires 001_normalize.sql. Safe to run again: the starter rows are re-inserted
+-- Requires 001_normalize.sql. Safe to run again: starter rows are re-inserted or re-marked
 -- without duplicates and user rows are kept.
 
 create table if not exists lahja.lexicon (
@@ -199,7 +199,8 @@ from (values
   ('كويسة', 'quality', 'filler'), ('زين', 'quality', 'filler'), ('حلو', 'quality', 'filler'),
   ('حلوة', 'quality', 'filler'), ('ممتاز', 'quality', 'filler'), ('رخيص', 'quality', 'filler')
 ) as starter(word, grp, kind)
-on conflict (word, grp) do nothing;
+-- rows from older versions of this file are marked as starter rows too
+on conflict (word, grp) do update set is_starter = true;
 
 -- Removes filler words. Stable, not immutable: it reads lahja.lexicon.
 create or replace function lahja.strip_fillers(input text)
