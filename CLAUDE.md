@@ -24,7 +24,7 @@ Owner: Saleh. Saleh reviews and tests every step by hand. Claude writes the code
 2. Build: write the code on a branch named `slice-N-<topic>`.
 3. Review: run `/code-review` on the diff, fix real findings.
 4. Pull request: open it with test steps Saleh can follow by hand.
-5. Stop. Saleh tests in Supabase and merges. The next slice starts only after his approval.
+5. Merge. Since 1 Nov 2026 Saleh has approved the remaining slices: Claude merges after review and local tests, and Saleh tests in Supabase afterwards and reports issues.
 6. Update the slice status below.
 
 ## Layout
@@ -33,6 +33,7 @@ Owner: Saleh. Saleh reviews and tests every step by hand. Claude writes the code
 - `db/`: SQL files, numbered in the order Saleh applies them. Package files use 001 to 899; benchmark files use 900 and up, so they never need renumbering. `901_bench_seed.sql` is generated: never edit it by hand
 - `scripts/fixtures-to-sql.mjs`: regenerates `db/901_bench_seed.sql` from `fixtures/` (run after any approved fixture change)
 - The benchmark is pure SQL (`db/900` to `db/902`) and runs in the Supabase SQL editor
+- Vector benchmark: `scripts/embed-fixtures.mjs` (run by Saleh, needs HF_TOKEN) generates `db/903_bench_embeddings.sql`, then `db/904_bench_hybrid_run.sql` compares keyword, vector and hybrid. Commit 903 once it holds real embeddings
 - Benchmark tuning must not target specific test queries. Saleh keeps a private held-out query set to check for overfitting
 
 ## Slice status
@@ -43,8 +44,8 @@ Owner: Saleh. Saleh reviews and tests every step by hand. Claude writes the code
 | 1 | `lahja.normalize()` and baseline benchmark | Done |
 | 2 | Stemming and Arabizi consonant skeletons | Done |
 | 3 | Dialect and synonym lexicon | Done |
-| 4 | Search API: `to_document()`, `to_query()`, `rank()` | In review |
-| 5 | Vector search (matching by meaning) | Not started |
+| 4 | Search API: `to_document()`, `to_query()`, `rank()` | Done |
+| 5 | Hybrid search: `rrf_score()` and vector benchmark | In review |
 | 6 | Packaging for database.dev | Not started |
 
 ## Style
